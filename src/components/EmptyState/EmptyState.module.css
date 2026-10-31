@@ -1,0 +1,26 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 64px 24px;
+    text-align: center;
+}
+
+.message {
+    margin: 0;
+    font-size: 18px;
+}
+
+.action {
+    padding: 10px 16px;
+    border-radius: 6px;
+    background-color: #4f46e5;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.action:hover,
+.action:focus-visible {
+    background-color: #4338ca;
+}
