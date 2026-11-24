@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useGetProductsQuery } from '../../features/products/productsApi'
 import EmptyState from '../../components/EmptyState/EmptyState'
 import Loader from '../../components/Loader/Loader'
@@ -9,9 +11,30 @@ import styles from './CatalogPage.module.css'
 function CatalogPage() {
     const { data, isLoading, isError } = useGetProductsQuery()
 
-    const [search, setSearch] = useState('')
-    const [category, setCategory] = useState('all')
-    const [sort, setSort] = useState<SortOrder>('default')
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const search = searchParams.get('search') ?? ''
+    const category = searchParams.get('category') ?? 'all'
+
+    const sortParam = searchParams.get('sort')
+    const sort: SortOrder =
+        sortParam === 'price-asc' ||
+        sortParam === 'price-desc' ||
+        sortParam === 'rating-desc'
+            ? sortParam
+            : 'default'
+
+    function updateFilter(key: string, value: string) {
+        const newParams = new URLSearchParams(searchParams)
+
+        if (!value || value === 'all' || value === 'default') {
+            newParams.delete(key)
+        } else {
+            newParams.set(key, value)
+        }
+
+        setSearchParams(newParams, { replace: true })
+    }
 
     const categories = useMemo(() => {
         if (!data) return []
@@ -35,9 +58,7 @@ function CatalogPage() {
     }, [data, search, category, sort])
 
     function handleReset() {
-        setSearch('')
-        setCategory('all')
-        setSort('default')
+        setSearchParams({}, { replace: true })
     }
 
     if (isLoading) return <Loader />
@@ -50,14 +71,14 @@ function CatalogPage() {
                 <input
                     type="text"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => updateFilter('search', e.target.value)}
                     placeholder="Search by title..."
                     className={styles.control}
                 />
 
                 <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => updateFilter('category', e.target.value)}
                     className={styles.control}
                 >
                     <option value="all">All categories</option>
@@ -70,7 +91,7 @@ function CatalogPage() {
 
                 <select
                     value={sort}
-                    onChange={(e) => setSort(e.target.value as SortOrder)}
+                    onChange={(e) => updateFilter('sort', e.target.value)}
                     className={styles.control}
                 >
                     <option value="default">Default order</option>

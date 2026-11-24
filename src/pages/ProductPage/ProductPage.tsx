@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom'
+
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import EmptyState from '../../components/EmptyState/EmptyState'
 import Loader from '../../components/Loader/Loader'
@@ -9,6 +10,10 @@ import styles from './ProductPage.module.css'
 
 function ProductPage() {
     const { id } = useParams()
+    const location = useLocation()
+
+    const catalogUrl = location.state?.from || '/'
+
     const { data: product, isLoading, isError } = useGetProductByIdQuery(Number(id))
     const dispatch = useAppDispatch()
     const favoriteIds = useAppSelector(selectFavoriteIds)
@@ -16,14 +21,20 @@ function ProductPage() {
     if (isLoading) return <Loader />
 
     if (isError || !product) {
-        return <EmptyState message="Product not found" actionLabel="Back to catalog" actionTo="/" />
+        return (
+            <EmptyState
+                message="Product not found"
+                actionLabel="Back to catalog"
+                actionTo={catalogUrl}
+            />
+        )
     }
 
     const isFavorite = favoriteIds.includes(product.id)
 
     return (
         <div className={styles.page}>
-            <Link to="/" className={styles.back}>
+            <Link to={catalogUrl} className={styles.back}>
                 <span aria-hidden="true">←</span> Back to catalog
             </Link>
 
@@ -36,7 +47,11 @@ function ProductPage() {
 
                 <div className={styles.content}>
                     <div className={styles.imageBox}>
-                        <img src={product.thumbnail} alt={product.title} className={styles.image} />
+                        <img
+                            src={product.thumbnail}
+                            alt={product.title}
+                            className={styles.image}
+                        />
                     </div>
 
                     <div className={styles.info}>
@@ -44,9 +59,13 @@ function ProductPage() {
                         <p className={styles.price}>${product.price}</p>
 
                         <div className={styles.actions}>
-                            <button className={styles.primary} onClick={() => dispatch(addToCart(product))}>
+                            <button
+                                className={styles.primary}
+                                onClick={() => dispatch(addToCart(product))}
+                            >
                                 Add to cart
                             </button>
+
                             <button
                                 className={styles.secondary}
                                 onClick={() => dispatch(toggleFavorite(product.id))}
